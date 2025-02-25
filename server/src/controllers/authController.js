@@ -3,7 +3,7 @@ import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-const { validationResult } = require("express-validator");
+import { validationResult } from "express-validator";
 
 // Load environment variables
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"; // Use proper env variable in production!
@@ -45,7 +45,7 @@ const generateTokens = (user) => {
  * Register a new user
  * @route POST /api/auth/register
  */
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   try {
     // Validate request
     const errors = validationResult(req);
@@ -120,45 +120,50 @@ exports.register = async (req, res) => {
  * Login user
  * @route POST /api/auth/login
  */
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   try {
     // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array(),
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     const { email, password } = req.body;
 
+    if (!password) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Password is required" });
+    }
+
     // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
+
     if (!user) {
-      return res.status(401).json({
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Check if user has a password stored
+    if (!user.password) {
+      return res.status(500).json({
         success: false,
-        message: "Invalid credentials",
+        message: "User password is missing. Please reset your password.",
       });
     }
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      // Increment failed login attempts
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
-
-      // Lock account after too many failed attempts
       if (user.failedLoginAttempts >= 5) {
-        user.lockedUntil = Date.now() + 30 * 60 * 1000; // Lock for 30 minutes
+        user.lockedUntil = Date.now() + 30 * 60 * 1000;
       }
-
       await user.save();
-
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     // Check if account is locked
@@ -170,16 +175,14 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Reset failed login attempts on successful login
+    // Reset failed login attempts
     user.failedLoginAttempts = 0;
     user.lockedUntil = null;
 
     // Generate tokens
     const tokens = generateTokens(user);
-
-    // Save refresh token to user document
     user.refreshToken = tokens.refreshToken;
-    user.lastLogin = Date.now();
+    user.lastLogin = new Date();
     await user.save();
 
     res.status(200).json({
@@ -195,10 +198,9 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred during login",
-    });
+    res
+      .status(500)
+      .json({ success: false, message: "An error occurred during login" });
   }
 };
 
@@ -206,7 +208,7 @@ exports.login = async (req, res) => {
  * Refresh access token using refresh token
  * @route POST /api/auth/refresh-token
  */
-exports.refreshToken = async (req, res) => {
+const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
 
@@ -266,7 +268,7 @@ exports.refreshToken = async (req, res) => {
  * Logout user by invalidating refresh token
  * @route POST /api/auth/logout
  */
-exports.logout = async (req, res) => {
+const logout = async (req, res) => {
   try {
     const { refreshToken } = req.body;
 
@@ -300,7 +302,7 @@ exports.logout = async (req, res) => {
  * Verify email with verification token
  * @route GET /api/auth/verify-email/:token
  */
-exports.verifyEmail = async (req, res) => {
+const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
 
@@ -339,7 +341,7 @@ exports.verifyEmail = async (req, res) => {
  * Request password reset
  * @route POST /api/auth/forgot-password
  */
-exports.forgotPassword = async (req, res) => {
+const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -388,7 +390,7 @@ exports.forgotPassword = async (req, res) => {
  * Reset password with token
  * @route POST /api/auth/reset-password/:token
  */
-exports.resetPassword = async (req, res) => {
+const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
@@ -443,7 +445,7 @@ exports.resetPassword = async (req, res) => {
  * Get current user profile
  * @route GET /api/auth/me
  */
-exports.getMe = async (req, res) => {
+const getMe = async (req, res) => {
   try {
     // User is already available from auth middleware
     const user = req.user;
@@ -472,7 +474,7 @@ exports.getMe = async (req, res) => {
  * Change password (authenticated route)
  * @route PUT /api/auth/change-password
  */
-exports.changePassword = async (req, res) => {
+const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user._id;
@@ -517,4 +519,16 @@ exports.changePassword = async (req, res) => {
       message: "An error occurred while changing your password",
     });
   }
+};
+
+export default {
+  login,
+  register,
+  refreshToken,
+  logout,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  getMe,
+  changePassword,
 };

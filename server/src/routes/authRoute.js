@@ -138,11 +138,6 @@ router.post("/refresh-token", authController.refreshToken);
 router.post("/logout", authController.logout);
 router.get("/verify-email/:token", authController.verifyEmail);
 router.post(
-  "/resend-verification",
-  forgotPasswordValidation,
-  authController.resendVerification
-);
-router.post(
   "/forgot-password",
   forgotPasswordValidation,
   authController.forgotPassword
@@ -157,97 +152,16 @@ router.post(
  * Protected routes (authentication required)
  */
 router.get("/me", authMiddleware.protect, authController.getMe);
-router.put(
-  "/update-profile",
-  authMiddleware.protect,
-  updateProfileValidation,
-  authController.updateProfile
-);
+
 router.put(
   "/change-password",
   authMiddleware.protect,
   changePasswordValidation,
   authController.changePassword
 );
-router.post("/enable-2fa", authMiddleware.protect, authController.enable2FA);
-router.post("/verify-2fa", authMiddleware.protect, authController.verify2FA);
-router.post("/disable-2fa", authMiddleware.protect, authController.disable2FA);
-router.get(
-  "/active-sessions",
-  authMiddleware.protect,
-  authController.getActiveSessions
-);
-router.delete(
-  "/revoke-session/:sessionId",
-  authMiddleware.protect,
-  authController.revokeSession
-);
-router.post(
-  "/revoke-all-sessions",
-  authMiddleware.protect,
-  authController.revokeAllSessions
-);
-router.post(
-  "/deactivate-account",
-  authMiddleware.protect,
-  authController.deactivateAccount
-);
-router.post(
-  "/reactivate-account",
-  authMiddleware.optionalAuth,
-  authController.reactivateAccount
-);
 
 /**
  * Admin-only routes
  */
-router.get(
-  "/users",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.getAllUsers
-);
-router.get(
-  "/users/:id",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.getUserById
-);
-router.put(
-  "/users/:id",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.updateUser
-);
-router.delete(
-  "/users/:id",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.deleteUser
-);
-router.post(
-  "/users/:id/verify",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.adminVerifyUser
-);
-router.post(
-  "/users/:id/suspend",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.suspendUser
-);
-router.post(
-  "/users/:id/unsuspend",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.unsuspendUser
-);
-router.post(
-  "/users/:id/change-role",
-  authMiddleware.protect,
-  authMiddleware.restrictTo("admin"),
-  authController.changeUserRole
-);
-
-module.exports = router;
+// TODO: Implement admin-only routes
+export default router;

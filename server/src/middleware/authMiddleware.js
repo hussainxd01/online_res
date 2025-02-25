@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
  * Middleware to protect routes with JWT authentication
  * Verifies the token and attaches the user to the request object
  */
-exports.protect = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     let token;
 
@@ -73,7 +73,7 @@ exports.protect = async (req, res, next) => {
  * @param {...String} roles - Roles allowed to access the route
  * @returns {Function} Middleware function
  */
-exports.restrictTo = (...roles) => {
+const restrictTo = (...roles) => {
   return (req, res, next) => {
     // Check if user has required role
     if (!roles.includes(req.user.role)) {
@@ -90,7 +90,7 @@ exports.restrictTo = (...roles) => {
  * Optional authentication middleware
  * Attaches user to request if token is valid, but doesn't block request if no token or invalid
  */
-exports.optionalAuth = async (req, res, next) => {
+const optionalAuth = async (req, res, next) => {
   try {
     let token;
 
@@ -129,3 +129,5 @@ exports.optionalAuth = async (req, res, next) => {
     next();
   }
 };
+
+export default { protect, restrictTo, optionalAuth };

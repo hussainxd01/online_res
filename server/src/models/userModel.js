@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 
-const UserSchema = new Schema(
+const UserSchema = new mongoose.Schema(
   {
     // Core user information
     email: {
@@ -116,10 +116,10 @@ const UserSchema = new Schema(
 
     // Tracking and analytics
     lastLogin: {
-      timestamp: Date,
-      ip: String,
-      userAgent: String,
+      type: Date,
+      default: Date.now,
     },
+
     loginHistory: [
       {
         timestamp: Date,
@@ -243,10 +243,10 @@ UserSchema.methods.isActiveAndUnlocked = function () {
 };
 
 // Indexes for performance
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
 UserSchema.index({ verificationToken: 1 });
 UserSchema.index({ resetPasswordToken: 1 });
 UserSchema.index({ "refreshTokens.token": 1 });
 
-module.exports = mongoose.model("User", UserSchema);
+const User = mongoose.model("User", UserSchema);
+
+export default User;
