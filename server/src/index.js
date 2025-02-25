@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-import connectDB from "../config/db.js";
+import connectDB from "../src/config/db.js";
 
 // Load environment variables
 dotenv.config();
