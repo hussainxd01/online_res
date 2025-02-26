@@ -11,6 +11,14 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        text: {
+          DEFAULT: "#241A16",
+          heading: "#7F3828",
+          accent: "#D3A971",
+        },
+      },
+      fontFamily: {
+        Manrope: ["Manrope", "system-ui", "sans-serif"],
       },
     },
   },
